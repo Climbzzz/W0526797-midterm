@@ -1,0 +1,16 @@
+sequenceDiagram
+    actor Player
+    participant Grid
+    participant Cell
+    participant Flag
+    participant Mimic
+
+    Player->>Grid: Move (WASD/Arrows)
+    Grid->>Cell: Get tile under player
+    Player->>Flag: Walk over flag
+    Flag-->>Player: Add to inventory (max 2)
+
+    Player->>Cell: Look at number (no reveal)
+    Cell-->>Player: Show current number
+
+    Mimic->>Cell: Change one number (only after reveals)

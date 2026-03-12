@@ -1,0 +1,26 @@
+sequenceDiagram
+    actor Player
+    participant Grid
+    participant Cell
+    participant Reveal as RevealCtrl
+    participant Mimic
+
+    Player->>Grid: Step key (reveal)
+    Grid->>Cell: Identify type
+
+    alt First reveal
+        Grid->>Grid: Place bombs (exclude first cell + neighbors)
+        Grid->>Grid: Compute true numbers
+    end
+
+    Cell-->>Reveal: Bomb / Number / Empty
+
+    alt Bomb
+        Reveal-->>Player: Game Over
+    else Number
+        Reveal->>Cell: Show TRUE number
+    else Empty (0)
+        Reveal->>Grid: Flood reveal nearby cells (bounded)
+    end
+
+    Mimic->>Cell: After reveal, change one displayed number

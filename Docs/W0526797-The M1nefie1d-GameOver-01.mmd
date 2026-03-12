@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant GM as GameManager
+    actor Player
+    participant Grid
+    participant UI
+
+    GM->>Grid: Reveal all bombs
+    Grid-->>Player: Show final board
+
+    GM->>UI: Show Restart / Quit
+    Player->>UI: Choose option

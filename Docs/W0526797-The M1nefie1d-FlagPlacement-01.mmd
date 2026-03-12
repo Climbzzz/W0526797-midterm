@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor Player
+    participant Cell
+    participant Inv as Inventory
+
+    Player->>Cell: Place/Pickup key
+    Inv-->>Player: Check flags held (0..2)
+
+    alt Cell has a flag
+        Player->>Inv: Try pickup
+        alt Inventory has space
+            Cell-->>Player: Remove flag from cell
+            Inv-->>Player: +1 flag
+        else Full
+            Cell-->>Player: Cannot pick up
+        end
+    else Cell has no flag
+        alt Player has at least 1 flag
+            Player->>Cell: Place flag
+            Inv-->>Player: -1 flag
+        else No flags
+            Cell-->>Player: Cannot place
+        end
+    end
