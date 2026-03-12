@@ -355,3 +355,7 @@ if __name__ == "__main__":
     # Try mimic change after reveals
     changed = gm.apply_mimic_change(2, 1, 5)
     print("Mimic change applied: ", changed)
+
+# so apparently this code that i had saved on my home computer for a while is actually
+# pretty much the completed exam and ready to be used as a base for the game logic.
+# Didnt expect that, but it is a good starting point for implementing the actual game.
