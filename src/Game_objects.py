@@ -1,76 +1,110 @@
-# super basic prototype of the diagram logic
+import random
 
-# ---- Data ----
-grid = [
-    ["cell", "flag", "cell"],
-    ["cell", "mimic", "cell"],
-    ["cell", "cell", "cell"]
-]
+# ---- CONFIG ----
+GRID_SIZE = 10
+
+ICON_HIDDEN = "░"      # unrevealed
+ICON_PLAYER = "P"
+ICON_CELL = "."        # revealed normal cell
+ICON_FLAG = "F"        # revealed flag
+ICON_MIMIC = "M"       # revealed mimic (player doesn't know until revealed)
+
+# ---- GRID GENERATION ----
+def random_tile():
+    chance = random.random()
+    if chance < 0.1:
+        return "flag"
+    elif chance < 0.15:
+        return "mimic"
+    else:
+        return "cell"
+
+grid = [[random_tile() for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+revealed = [[False for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+
+numbers = {}  # gives each tile a number when revealed
 
 player_pos = [0, 0]
-inventory = []   # can only hold 2 numbers
-revealed_numbers = {
-    "cell": 3,
-    "flag": 7,
-    "mimic": 0
-}
+inventory = []
 
-# ---- Helpers ----
+# ---- FUNCTIONS ----
+
+def generate_number(tile_type):
+    """Assign numbers based on tile type."""
+    if tile_type == "cell":
+        return random.randint(1, 9)
+    if tile_type == "flag":
+        return random.randint(5, 15)
+    if tile_type == "mimic":
+        return random.randint(0, 9)
+
 def show_grid():
-    for r in range(3):
+    for r in range(GRID_SIZE):
         row = ""
-        for c in range(3):
+        for c in range(GRID_SIZE):
             if [r, c] == player_pos:
-                row += "[P] "
+                row += ICON_PLAYER + " "
             else:
-                row += "[ ] "
+                if not revealed[r][c]:
+                    row += ICON_HIDDEN + " "
+                else:
+                    t = grid[r][c]
+                    if t == "cell": row += ICON_CELL + " "
+                    if t == "flag": row += ICON_FLAG + " "
+                    if t == "mimic": row += ICON_MIMIC + " "
         print(row)
     print()
 
-def move(direction):
+def move(dir):
     r, c = player_pos
-    if direction == "w" and r > 0: player_pos[0] -= 1
-    elif direction == "s" and r < 2: player_pos[0] += 1
-    elif direction == "a" and c > 0: player_pos[1] -= 1
-    elif direction == "d" and c < 2: player_pos[1] += 1
+    if dir == "w" and r > 0: player_pos[0] -= 1
+    if dir == "s" and r < GRID_SIZE - 1: player_pos[0] += 1
+    if dir == "a" and c > 0: player_pos[1] -= 1
+    if dir == "d" and c < GRID_SIZE - 1: player_pos[1] += 1
 
-def get_tile():
+def reveal_tile():
     r, c = player_pos
-    return grid[r][c]
+    t = grid[r][c]
 
-# ---- Game Loop ----
-print("Simple Grid Demo (WASD to move, q to quit)")
+    if not revealed[r][c]:
+        revealed[r][c] = True
+        numbers[(r, c)] = generate_number(t)
+
+    # flag pickup
+    if t == "flag" and numbers[(r, c)] not in inventory:
+        if len(inventory) < 2:
+            inventory.append(numbers[(r, c)])
+            print("Picked up flag number:", numbers[(r, c)])
+        else:
+            print("Inventory full.")
+
+    # mimic behavior (NO announcement)
+    if t == "mimic" and inventory:
+        print("You feel a strange effect nearby...")
+        idx = int(input("Choose inventory slot to change (0 or 1): "))
+        new_num = int(input("Enter new number: "))
+        inventory[idx] = new_num
+        print("Inventory updated:", inventory)
+
+    print("Tile number:", numbers[(r, c)])
+
+# ---- GAME LOOP ----
+
+print("Controls: w/a/s/d to move, e to reveal, q to quit\n")
+
 show_grid()
 
 while True:
-    cmd = input("Move (w/a/s/d): ").lower()
+    cmd = input("> ")
+
     if cmd == "q":
         break
+    elif cmd in ("w", "a", "s", "d"):
+        move(cmd)
+    elif cmd == "e":
+        reveal_tile()
 
-    move(cmd)
-    tile = get_tile()
-
-    print(f"You stepped on a {tile}!")
-
-    # Step on flag → add to inventory (max 2)
-    if tile == "flag":
-        if len(inventory) < 2:
-            inventory.append(revealed_numbers["flag"])
-            print("Picked up a number! Inventory:", inventory)
-        else:
-            print("Inventory full (max 2).")
-
-    # Step on mimic → change a number (only if you already revealed something)
-    if tile == "mimic" and inventory:
-        print("Mimic! You can change one number in your inventory.")
-        print("Current inventory:", inventory)
-        idx = int(input("Choose index to change (0 or 1): "))
-        new_val = int(input("Enter new number: "))
-        inventory[idx] = new_val
-        print("Inventory updated:", inventory)
-
-    # Look at number (cell or flag reveal)
-    print("This tile's number is:", revealed_numbers[tile])
     show_grid()
+    print("Inventory:", inventory)
 
-print("Game ended.")
+print("Game Over.")
